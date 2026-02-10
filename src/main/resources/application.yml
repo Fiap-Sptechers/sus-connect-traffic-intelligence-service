@@ -1,0 +1,138 @@
+spring:
+  application:
+    name: traffic-intelligence-service
+  
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+  
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+server:
+  port: 8082
+  tomcat:
+    uri-encoding: UTF-8
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  level:
+    root: INFO
+    com.fiap.sus.traffic: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+traffic:
+  intelligence:
+    network-service:
+      url: http://localhost:8080
+      timeout: 180000  # 3 minutos - necessário para processar grandes volumes de unidades
+      connect-timeout: 5000
+    liveops-service:
+      url: http://localhost:8081
+      timeout: 2000
+      connect-timeout: 1000
+    cache:
+      ttl-indicadores: 30s
+      ttl-unidades: 60s
+      ttl-pesos: 300s
+      ttl-sugestoes: 300s  # Cache de sugestões - 5 minutos (mesmo TTL das unidades)
+    algoritmo:
+      pesos:
+        distancia: 0.3
+        tma: 0.4
+        ocupacao: 0.2
+        especialidade: 0.1
+      max-sugestoes: 5
+      raio-default-km: 50.0
+      raio-minimo-km: 1.0
+      raio-maximo-km: 100.0
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      networkService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+        # Registrar exceções que devem contar como falhas para o Circuit Breaker
+        recordExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - org.springframework.web.client.HttpClientErrorException
+          - feign.FeignException
+          - java.net.ConnectException
+          - java.util.concurrent.TimeoutException
+          - java.io.IOException
+      liveOpsService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+        # Registrar exceções que devem contar como falhas para o Circuit Breaker
+        recordExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - org.springframework.web.client.HttpClientErrorException
+          - feign.FeignException
+          - java.net.ConnectException
+          - java.util.concurrent.TimeoutException
+          - java.io.IOException
+  retry:
+    instances:
+      networkService:
+        maxAttempts: 3
+        waitDuration: 500ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+      liveOpsService:
+        maxAttempts: 3
+        waitDuration: 500ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 180000  # 3 minutos - necessário para processar grandes volumes
+        loggerLevel: basic
+      networkService:
+        url: ${traffic.intelligence.network-service.url}
+        connectTimeout: 5000
+        readTimeout: 180000  # 3 minutos para Network Service
+      liveOpsService:
+        url: ${traffic.intelligence.liveops-service.url}
+        connectTimeout: 5000
+        readTimeout: 2000

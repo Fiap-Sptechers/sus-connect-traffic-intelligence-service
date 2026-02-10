@@ -1,0 +1,1128 @@
+{
+	"info": {
+		"_postman_id": "traffic-intelligence-service-collection",
+		"name": "Traffic Intelligence Service",
+		"description": "Collection para testar o SusConnect Traffic Intelligence Service\n\nBase URL: http://localhost:8082",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Health Check - Traffic Intelligence",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Verifica o status de saúde do Traffic Intelligence Service"
+					},
+					"response": []
+				},
+				{
+					"name": "Health Check - Network Service",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Verifica o status de saúde do Network Service"
+					},
+					"response": []
+				},
+				{
+					"name": "Health Check - LiveOps Service",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Verifica o status de saúde do LiveOps Service"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de health check dos serviços"
+		},
+		{
+			"name": "Direcionamento",
+			"item": [
+				{
+					"name": "Consultar Direcionamento - Sucesso",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "baseAddress",
+									"value": "São Paulo, SP",
+									"type": "text"
+								},
+								{
+									"key": "riskClassification",
+									"value": "YELLOW",
+									"type": "text"
+								},
+								{
+									"key": "radius",
+									"value": "50",
+									"type": "text"
+								},
+								{
+									"key": "distanceUnit",
+									"value": "KM",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "especialidade",
+									"value": "Cardiologia",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8082/direcionamento/consultar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"direcionamento",
+								"consultar"
+							]
+						},
+						"description": "Consulta de direcionamento com parâmetros válidos"
+					},
+					"response": []
+				},
+				{
+					"name": "Consultar Direcionamento - Com Especialidade",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "baseAddress",
+									"value": "Av. Paulista, 1000, São Paulo, SP",
+									"type": "text"
+								},
+								{
+									"key": "riskClassification",
+									"value": "ORANGE",
+									"type": "text"
+								},
+								{
+									"key": "radius",
+									"value": "30",
+									"type": "text"
+								},
+								{
+									"key": "especialidade",
+									"value": "Cardiologia",
+									"type": "text"
+								},
+								{
+									"key": "distanceUnit",
+									"value": "KM",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8082/direcionamento/consultar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"direcionamento",
+								"consultar"
+							]
+						},
+						"description": "Consulta de direcionamento com especialidade específica"
+					},
+					"response": []
+				},
+				{
+					"name": "Consultar Direcionamento - GET (URL Encoded)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/direcionamento/consultar?baseAddress=S%C3%A3o%20Paulo%2C%20SP&riskClassification=YELLOW&radius=50",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"direcionamento",
+								"consultar"
+							],
+							"query": [
+								{
+									"key": "baseAddress",
+									"value": "São Paulo, SP"
+								},
+								{
+									"key": "riskClassification",
+									"value": "YELLOW"
+								},
+								{
+									"key": "radius",
+									"value": "50"
+								}
+							]
+						},
+						"description": "Consulta usando método GET com parâmetros na URL (URL encoded)"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de consulta de direcionamento"
+		},
+		{
+			"name": "Testes de Validação - Erros",
+			"item": [
+				{
+					"name": "Erro - baseAddress Vazio",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "baseAddress",
+									"value": "",
+									"type": "text"
+								},
+								{
+									"key": "riskClassification",
+									"value": "YELLOW",
+									"type": "text"
+								},
+								{
+									"key": "radius",
+									"value": "50",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8082/direcionamento/consultar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"direcionamento",
+								"consultar"
+							]
+						},
+						"description": "Testa validação quando baseAddress está vazio. Esperado: HTTP 400 com errorCode VALIDATION_ERROR"
+					},
+					"response": []
+				},
+				{
+					"name": "Erro - riskClassification Inválido",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "baseAddress",
+									"value": "São Paulo, SP",
+									"type": "text"
+								},
+								{
+									"key": "riskClassification",
+									"value": "INVALID",
+									"type": "text"
+								},
+								{
+									"key": "radius",
+									"value": "50",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8082/direcionamento/consultar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"direcionamento",
+								"consultar"
+							]
+						},
+						"description": "Testa validação quando riskClassification é inválido. Esperado: HTTP 400 com errorCode VALIDATION_ERROR"
+					},
+					"response": []
+				},
+				{
+					"name": "Erro - riskClassification Ausente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "baseAddress",
+									"value": "São Paulo, SP",
+									"type": "text"
+								},
+								{
+									"key": "radius",
+									"value": "50",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8082/direcionamento/consultar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"direcionamento",
+								"consultar"
+							]
+						},
+						"description": "Testa validação quando riskClassification está ausente. Esperado: HTTP 400 com errorCode VALIDATION_ERROR"
+					},
+					"response": []
+				},
+				{
+					"name": "Erro - radius Negativo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "baseAddress",
+									"value": "São Paulo, SP",
+									"type": "text"
+								},
+								{
+									"key": "riskClassification",
+									"value": "YELLOW",
+									"type": "text"
+								},
+								{
+									"key": "radius",
+									"value": "-10",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8082/direcionamento/consultar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"direcionamento",
+								"consultar"
+							]
+						},
+						"description": "Testa validação quando radius é negativo. Esperado: HTTP 400 com errorCode VALIDATION_ERROR"
+					},
+					"response": []
+				},
+				{
+					"name": "Erro - radius Fora do Intervalo (Muito Grande)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "baseAddress",
+									"value": "São Paulo, SP",
+									"type": "text"
+								},
+								{
+									"key": "riskClassification",
+									"value": "YELLOW",
+									"type": "text"
+								},
+								{
+									"key": "radius",
+									"value": "200",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8082/direcionamento/consultar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"direcionamento",
+								"consultar"
+							]
+						},
+						"description": "Testa validação quando radius está fora do intervalo permitido (max 100km). Esperado: HTTP 400 com errorCode VALIDATION_ERROR"
+					},
+					"response": []
+				},
+				{
+					"name": "Erro - Nenhuma Unidade Encontrada",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "baseAddress",
+									"value": "Localização Remota, Sem Unidades Próximas",
+									"type": "text"
+								},
+								{
+									"key": "riskClassification",
+									"value": "YELLOW",
+									"type": "text"
+								},
+								{
+									"key": "radius",
+									"value": "10",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8082/direcionamento/consultar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"direcionamento",
+								"consultar"
+							]
+						},
+						"description": "Testa quando nenhuma unidade é encontrada no raio especificado. Esperado: HTTP 400 com errorCode NO_UNITS_FOUND"
+					},
+					"response": []
+				}
+			],
+			"description": "Testes de validação e tratamento de erros"
+		},
+		{
+			"name": "Configuração de Pesos",
+			"item": [
+				{
+					"name": "Atualizar Pesos - Sucesso",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pesoDistancia\": 0.4,\n  \"pesoTMA\": 0.3,\n  \"pesoOcupacao\": 0.2,\n  \"pesoEspecialidade\": 0.1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8082/config/pesos",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"config",
+								"pesos"
+							]
+						},
+						"description": "Atualiza os pesos do algoritmo de direcionamento. Esperado: HTTP 204 (No Content)"
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Pesos - Priorizar Distância",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pesoDistancia\": 0.6,\n  \"pesoTMA\": 0.2,\n  \"pesoOcupacao\": 0.1,\n  \"pesoEspecialidade\": 0.1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8082/config/pesos",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"config",
+								"pesos"
+							]
+						},
+						"description": "Configura pesos para priorizar distância (cenário de crise logística)"
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Pesos - Priorizar Especialidade",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pesoDistancia\": 0.2,\n  \"pesoTMA\": 0.2,\n  \"pesoOcupacao\": 0.1,\n  \"pesoEspecialidade\": 0.5\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8082/config/pesos",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"config",
+								"pesos"
+							]
+						},
+						"description": "Configura pesos para priorizar especialidade (cenário de surto epidemiológico)"
+					},
+					"response": []
+				},
+				{
+					"name": "Erro - Soma dos Pesos > 1.0",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pesoDistancia\": 0.5,\n  \"pesoTMA\": 0.3,\n  \"pesoOcupacao\": 0.2,\n  \"pesoEspecialidade\": 0.2\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8082/config/pesos",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"config",
+								"pesos"
+							]
+						},
+						"description": "Testa validação quando a soma dos pesos é maior que 1.0. Esperado: HTTP 400 com errorCode VALIDATION_ERROR"
+					},
+					"response": []
+				},
+				{
+					"name": "Erro - Peso Inválido (> 1.0)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pesoDistancia\": 1.5,\n  \"pesoTMA\": 0.3,\n  \"pesoOcupacao\": 0.2,\n  \"pesoEspecialidade\": 0.1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8082/config/pesos",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"config",
+								"pesos"
+							]
+						},
+						"description": "Testa validação quando um peso individual é maior que 1.0. Esperado: HTTP 400 com errorCode VALIDATION_ERROR"
+					},
+					"response": []
+				},
+				{
+					"name": "Erro - Peso Negativo",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pesoDistancia\": -0.1,\n  \"pesoTMA\": 0.3,\n  \"pesoOcupacao\": 0.2,\n  \"pesoEspecialidade\": 0.1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8082/config/pesos",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"config",
+								"pesos"
+							]
+						},
+						"description": "Testa validação quando um peso é negativo. Esperado: HTTP 400 com errorCode VALIDATION_ERROR"
+					},
+					"response": []
+				},
+				{
+					"name": "Erro - JSON Inválido",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pesoDistancia\": 0.4,\n  \"pesoTMA\": 0.3,\n  \"pesoOcupacao\": 0.2,\n  \"pesoEspecialidade\": 0.1\n  // JSON inválido - vírgula faltando\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8082/config/pesos",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"config",
+								"pesos"
+							]
+						},
+						"description": "Testa tratamento de erro quando o JSON está mal formatado. Esperado: HTTP 400 com errorCode INVALID_REQUEST_BODY"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de configuração dos pesos do algoritmo"
+		},
+		{
+			"name": "Testes de Protocolo Manchester",
+			"item": [
+				{
+					"name": "Risk Classification - RED",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "baseAddress",
+									"value": "São Paulo, SP",
+									"type": "text"
+								},
+								{
+									"key": "riskClassification",
+									"value": "RED",
+									"type": "text"
+								},
+								{
+									"key": "radius",
+									"value": "50",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8082/direcionamento/consultar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"direcionamento",
+								"consultar"
+							]
+						},
+						"description": "Testa direcionamento com classificação de risco RED (emergência)"
+					},
+					"response": []
+				},
+				{
+					"name": "Risk Classification - ORANGE",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "baseAddress",
+									"value": "São Paulo, SP",
+									"type": "text"
+								},
+								{
+									"key": "riskClassification",
+									"value": "ORANGE",
+									"type": "text"
+								},
+								{
+									"key": "radius",
+									"value": "50",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8082/direcionamento/consultar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"direcionamento",
+								"consultar"
+							]
+						},
+						"description": "Testa direcionamento com classificação de risco ORANGE (muito urgente)"
+					},
+					"response": []
+				},
+				{
+					"name": "Risk Classification - YELLOW",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "baseAddress",
+									"value": "São Paulo, SP",
+									"type": "text"
+								},
+								{
+									"key": "riskClassification",
+									"value": "YELLOW",
+									"type": "text"
+								},
+								{
+									"key": "radius",
+									"value": "50",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8082/direcionamento/consultar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"direcionamento",
+								"consultar"
+							]
+						},
+						"description": "Testa direcionamento com classificação de risco YELLOW (urgente)"
+					},
+					"response": []
+				},
+				{
+					"name": "Risk Classification - GREEN",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "baseAddress",
+									"value": "São Paulo, SP",
+									"type": "text"
+								},
+								{
+									"key": "riskClassification",
+									"value": "GREEN",
+									"type": "text"
+								},
+								{
+									"key": "radius",
+									"value": "50",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8082/direcionamento/consultar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"direcionamento",
+								"consultar"
+							]
+						},
+						"description": "Testa direcionamento com classificação de risco GREEN (pouco urgente)"
+					},
+					"response": []
+				},
+				{
+					"name": "Risk Classification - BLUE",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "baseAddress",
+									"value": "São Paulo, SP",
+									"type": "text"
+								},
+								{
+									"key": "riskClassification",
+									"value": "BLUE",
+									"type": "text"
+								},
+								{
+									"key": "radius",
+									"value": "50",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8082/direcionamento/consultar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"direcionamento",
+								"consultar"
+							]
+						},
+						"description": "Testa direcionamento com classificação de risco BLUE (não urgente)"
+					},
+					"response": []
+				}
+			],
+			"description": "Testes com todas as classificações de risco do protocolo Manchester"
+		},
+		{
+			"name": "Métricas e Observabilidade",
+			"item": [
+				{
+					"name": "Métricas Prometheus",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/actuator/prometheus",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"actuator",
+								"prometheus"
+							]
+						},
+						"description": "Obtém métricas no formato Prometheus"
+					},
+					"response": []
+				},
+				{
+					"name": "Métricas Customizadas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/actuator/metrics",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"actuator",
+								"metrics"
+							]
+						},
+						"description": "Lista todas as métricas disponíveis"
+					},
+					"response": []
+				},
+				{
+					"name": "Métrica - Consultas Totais",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/actuator/metrics/traffic.intelligence.consultas.total",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"actuator",
+								"metrics",
+								"traffic.intelligence.consultas.total"
+							]
+						},
+						"description": "Obtém métrica de total de consultas de direcionamento"
+					},
+					"response": []
+				},
+				{
+					"name": "Métrica - Duração das Consultas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/actuator/metrics/traffic.intelligence.consultas.duracao",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"actuator",
+								"metrics",
+								"traffic.intelligence.consultas.duracao"
+							]
+						},
+						"description": "Obtém métrica de duração das consultas"
+					},
+					"response": []
+				},
+				{
+					"name": "Circuit Breaker Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Verifica o status do Circuit Breaker nos componentes de health"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de métricas e observabilidade"
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8082",
+			"type": "string"
+		},
+		{
+			"key": "network_service_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "liveops_service_url",
+			"value": "http://localhost:8081",
+			"type": "string"
+		}
+	]
+}
