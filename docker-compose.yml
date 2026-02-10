@@ -4,9 +4,17 @@ services:
   redis:
     image: redis:7-alpine
     container_name: traffic-intelligence-redis
+    restart: unless-stopped
     ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes
+      - "${REDIS_PORT:-6379}:6379"
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory ${REDIS_MAX_MEMORY:-256mb}
+      --maxmemory-policy ${REDIS_MAXMEMORY_POLICY:-allkeys-lru}
+      --save 60 1000
+      --tcp-backlog 511
+      --timeout 300
     volumes:
       - redis-data:/data
     healthcheck:
@@ -14,6 +22,26 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
+      start_period: 10s
+    networks:
+      - sus-connect-network
+    labels:
+      - "com.sus-connect.service=redis"
+      - "com.sus-connect.environment=${ENVIRONMENT:-development}"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        compress: "true"
 
 volumes:
   redis-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${REDIS_DATA_PATH:-./data/redis}networks:
+  sus-connect-network:
+    driver: bridge
+    name: sus-connect-network

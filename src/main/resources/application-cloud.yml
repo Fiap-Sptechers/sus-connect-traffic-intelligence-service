@@ -1,11 +1,16 @@
+# Configuração específica para Cloud Run / Google Cloud Platform
+# Este profile é ativado automaticamente no Cloud Run via SPRING_PROFILES_ACTIVE=cloud
+
 spring:
   application:
     name: traffic-intelligence-service
   
   data:
     redis:
-      host: localhost
-      port: 6379
+      # Host e porta vêm de secrets do Cloud Run
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:}
       timeout: 2000ms
       lettuce:
         pool:
@@ -20,15 +25,19 @@ spring:
       fail-on-unknown-properties: false
 
 server:
-  port: ${PORT:8082}  # Cloud Run define $PORT automaticamente
+  port: ${PORT:8080}  # Cloud Run define $PORT automaticamente
   tomcat:
     uri-encoding: UTF-8
+    threads:
+      max: 200
+      min-spare: 10
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info,prometheus,metrics
+      base-path: /actuator
   metrics:
     export:
       prometheus:
@@ -40,26 +49,27 @@ management:
 logging:
   level:
     root: INFO
-    com.fiap.sus.traffic: DEBUG
+    com.fiap.sus.traffic: INFO  # Reduzir logs em produção
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
 traffic:
   intelligence:
     network-service:
-      url: http://localhost:8080
+      # URL vem de secret do Cloud Run
+      url: ${TRAFFIC_INTELLIGENCE_NETWORK_SERVICE_URL:http://network-service:8080}
       timeout: 180000  # 3 minutos - necessário para processar grandes volumes de unidades
       connect-timeout: 5000
     liveops-service:
-      url: http://localhost:8081
+      # URL vem de secret do Cloud Run
+      url: ${TRAFFIC_INTELLIGENCE_LIVEOPS_SERVICE_URL:http://liveops-service:8081}
       timeout: 2000
       connect-timeout: 1000
     cache:
       ttl-indicadores: 30s
       ttl-unidades: 60s
       ttl-pesos: 300s
-      ttl-sugestoes: 300s  # Cache de sugestões - 5 minutos (mesmo TTL das unidades)
+      ttl-sugestoes: 300s  # Cache de sugestões - 5 minutos
     algoritmo:
       pesos:
         distancia: 0.3
@@ -83,7 +93,6 @@ resilience4j:
         waitDurationInOpenState: 10s
         failureRateThreshold: 50
         eventConsumerBufferSize: 10
-        # Registrar exceções que devem contar como falhas para o Circuit Breaker
         recordExceptions:
           - org.springframework.web.client.HttpServerErrorException
           - org.springframework.web.client.HttpClientErrorException
@@ -100,7 +109,6 @@ resilience4j:
         waitDurationInOpenState: 10s
         failureRateThreshold: 50
         eventConsumerBufferSize: 10
-        # Registrar exceções que devem contar como falhas para o Circuit Breaker
         recordExceptions:
           - org.springframework.web.client.HttpServerErrorException
           - org.springframework.web.client.HttpClientErrorException

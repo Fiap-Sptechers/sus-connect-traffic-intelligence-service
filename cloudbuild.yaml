@@ -1,0 +1,153 @@
+# Cloud Build configuration para deploy automático no Cloud Run
+# Este arquivo permite deploy contínuo quando há push no repositório
+# Baseado em melhores práticas do Cloud Build
+
+steps:
+  # Step 0: Executar testes (opcional - descomente se quiser testes no pipeline)
+  # - name: 'maven:3.9-eclipse-temurin-21'
+  #   id: 'run-tests'
+  #   entrypoint: 'mvn'
+  #   args: ['test', '-B']
+  #   waitFor: ['-']
+
+  # Step 1: Build da imagem Docker
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-image'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'BUILDKIT_INLINE_CACHE=1'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO}/traffic-intelligence-service:$SHORT_SHA'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO}/traffic-intelligence-service:latest'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO}/traffic-intelligence-service:${_BRANCH_NAME}'
+      - '-f'
+      - 'Dockerfile'
+      - '.'
+    waitFor: ['-']  # Mude para ['run-tests'] se habilitar testes
+
+  # Step 2: Push da imagem para Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-image'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO}/traffic-intelligence-service'
+    waitFor: ['build-image']
+
+  # Step 3: Deploy no Cloud Run (apenas para branch main)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-cloud-run'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO}/traffic-intelligence-service:$SHORT_SHA'
+      - '--platform'
+      - 'managed'
+      - '--region'
+      - '${_REGION}'
+      - '--allow-unauthenticated'
+      - '--memory'
+      - '${_MEMORY:-2Gi}'
+      - '--cpu'
+      - '${_CPU:-2}'
+      - '--timeout'
+      - '300'
+      - '--max-instances'
+      - '${_MAX_INSTANCES:-10}'
+      - '--min-instances'
+      - '${_MIN_INSTANCES:-1}'
+      - '--concurrency'
+      - '${_CONCURRENCY:-80}'
+      - '--port'
+      - '${_PORT:-8080}'
+      - '--set-env-vars'
+      - 'SPRING_PROFILES_ACTIVE=${_SPRING_PROFILE:-cloud}'
+      - '--set-secrets'
+      - 'SPRING_DATA_REDIS_HOST=redis-host:latest,SPRING_DATA_REDIS_PORT=redis-port:latest,SPRING_DATA_REDIS_PASSWORD=redis-password:latest'
+      - '--set-secrets'
+      - 'TRAFFIC_INTELLIGENCE_NETWORK_SERVICE_URL=network-service-url:latest'
+      - '--set-secrets'
+      - 'TRAFFIC_INTELLIGENCE_LIVEOPS_SERVICE_URL=liveops-service-url:latest'
+      - '--revision-suffix'
+      - '${SHORT_SHA}'
+    waitFor: ['push-image']
+
+  # Step 4: Deploy staging (apenas para branch develop)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-staging'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}-staging'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO}/traffic-intelligence-service:$SHORT_SHA'
+      - '--platform'
+      - 'managed'
+      - '--region'
+      - '${_REGION}'
+      - '--allow-unauthenticated'
+      - '--memory'
+      - '1Gi'
+      - '--cpu'
+      - '1'
+      - '--timeout'
+      - '300'
+      - '--max-instances'
+      - '5'
+      - '--min-instances'
+      - '0'
+      - '--concurrency'
+      - '80'
+      - '--port'
+      - '${_PORT:-8080}'
+      - '--set-env-vars'
+      - 'SPRING_PROFILES_ACTIVE=staging'
+      - '--set-secrets'
+      - 'SPRING_DATA_REDIS_HOST=redis-host-staging:latest,SPRING_DATA_REDIS_PORT=redis-port-staging:latest,SPRING_DATA_REDIS_PASSWORD=redis-password-staging:latest'
+      - '--set-secrets'
+      - 'TRAFFIC_INTELLIGENCE_NETWORK_SERVICE_URL=network-service-url-staging:latest'
+      - '--set-secrets'
+      - 'TRAFFIC_INTELLIGENCE_LIVEOPS_SERVICE_URL=liveops-service-url-staging:latest'
+      - '--revision-suffix'
+      - '${SHORT_SHA}'
+    waitFor: ['push-image']
+
+# Substitutions (valores padrão - podem ser sobrescritos)
+substitutions:
+  _REGION: us-central1
+  _ARTIFACT_REGISTRY_REPO: sus-connect
+  _SERVICE_NAME: traffic-intelligence-service
+  _MEMORY: '2Gi'
+  _CPU: '2'
+  _MAX_INSTANCES: '10'
+  _MIN_INSTANCES: '1'
+  _CONCURRENCY: '80'
+  _PORT: '8080'
+  _SPRING_PROFILE: 'cloud'
+  _BRANCH_NAME: ${BRANCH_NAME}
+
+# Opções do Cloud Build
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+  pool: {}
+  # Habilitar cache de build
+  env:
+    - 'DOCKER_BUILDKIT=1'
+    - 'BUILDKIT_INLINE_CACHE=1'
+
+# Timeout do build (20 minutos)
+timeout: '1200s'
+
+# Imagens a serem armazenadas no cache
+images:
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO}/traffic-intelligence-service:$SHORT_SHA'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO}/traffic-intelligence-service:latest'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO}/traffic-intelligence-service:${_BRANCH_NAME}'
