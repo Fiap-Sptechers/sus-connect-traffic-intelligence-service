@@ -11,7 +11,7 @@ spring:
       host: ${SPRING_DATA_REDIS_HOST:localhost}
       port: ${SPRING_DATA_REDIS_PORT:6379}
       password: ${SPRING_DATA_REDIS_PASSWORD:}
-      timeout: 2000ms
+      timeout: 10000ms  # 10 segundos - necessário para conexão via VPC Connector
       lettuce:
         pool:
           max-active: 8
@@ -47,9 +47,9 @@ management:
       # Timeout para health checks individuais
       health-probe-timeout: 2s
   health:
-    # Desabilitar health checks que podem causar timeout
+    # Health checks configurados
     redis:
-      enabled: false  # Desabilitar temporariamente até Redis estar configurado
+      enabled: true  # Reabilitado agora que Redis está configurado
     # Circuit breakers não devem bloquear health check principal
     circuitbreakers:
       enabled: false
