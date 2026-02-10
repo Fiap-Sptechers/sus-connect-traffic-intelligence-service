@@ -24,8 +24,12 @@ public class RedisHealthIndicator implements HealthIndicator {
                 .withDetail("status", "Redis está disponível")
                 .build();
         } catch (Exception e) {
-            return Health.down()
+            // Não marcar como DOWN para não bloquear o health check principal
+            // Redis pode estar temporariamente indisponível mas a aplicação pode funcionar
+            return Health.unknown()
+                .withDetail("status", "Redis não acessível")
                 .withDetail("error", e.getMessage())
+                .withDetail("note", "Aplicação pode funcionar sem Redis (cache desabilitado)")
                 .build();
         }
     }

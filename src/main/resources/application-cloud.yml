@@ -38,6 +38,21 @@ management:
       exposure:
         include: health,info,prometheus,metrics
       base-path: /actuator
+  endpoint:
+    health:
+      # Configurar health check para não bloquear em componentes externos
+      show-details: when-authorized
+      probes:
+        enabled: true
+      # Timeout para health checks individuais
+      health-probe-timeout: 2s
+  health:
+    # Desabilitar health checks que podem causar timeout
+    redis:
+      enabled: false  # Desabilitar temporariamente até Redis estar configurado
+    # Circuit breakers não devem bloquear health check principal
+    circuitbreakers:
+      enabled: false
   metrics:
     export:
       prometheus:

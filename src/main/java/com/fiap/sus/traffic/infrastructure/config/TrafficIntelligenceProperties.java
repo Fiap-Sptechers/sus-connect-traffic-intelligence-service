@@ -21,7 +21,7 @@ public class TrafficIntelligenceProperties {
     @Getter
     @Setter
     public static class NetworkService {
-        private String url = "http://localhost:8080";
+        private String url;
         private int timeout = 180000;  // 3 minutos - necessário para processar grandes volumes (596k+ unidades)
         private int connectTimeout = 5000;
     }
@@ -29,7 +29,7 @@ public class TrafficIntelligenceProperties {
     @Getter
     @Setter
     public static class LiveOpsService {
-        private String url = "http://localhost:8081";
+        private String url;
         private int timeout = 2000;
         private int connectTimeout = 1000;
     }
