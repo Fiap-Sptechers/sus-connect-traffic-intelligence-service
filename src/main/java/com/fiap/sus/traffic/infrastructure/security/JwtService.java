@@ -25,12 +25,27 @@ public class JwtService {
 
     public JwtService(TrafficIntelligenceProperties properties) {
         String privateKeyPem = properties.getLiveopsService().getPrivateKey();
-        if (privateKeyPem == null || privateKeyPem.isBlank()) {
-            log.error("❌ TRAFFIC_LIVEOPS_PRIVATE_KEY não está configurada! Verifique se o secret está configurado no Cloud Run.");
+        
+        // Log detalhado para diagnóstico
+        if (privateKeyPem == null) {
+            log.error("❌ TRAFFIC_LIVEOPS_PRIVATE_KEY é null! Verifique se o secret está configurado no Cloud Run e se a propriedade está sendo lida corretamente.");
+            log.error("Properties object: {}", properties != null ? "não-nulo" : "nulo");
+            if (properties != null && properties.getLiveopsService() != null) {
+                log.error("LiveOpsService properties: {}", properties.getLiveopsService());
+            }
+            this.privateKey = null;
+        } else if (privateKeyPem.isBlank()) {
+            log.error("❌ TRAFFIC_LIVEOPS_PRIVATE_KEY está vazia (blank)! Verifique se o secret tem conteúdo.");
             this.privateKey = null;
         } else {
-            log.debug("Chave privada encontrada (tamanho: {} caracteres). Fazendo parse...", privateKeyPem.length());
+            log.info("✅ Chave privada encontrada (tamanho: {} caracteres). Fazendo parse...", privateKeyPem.length());
+            log.debug("Primeiros 50 caracteres da chave: {}", privateKeyPem.substring(0, Math.min(50, privateKeyPem.length())));
             this.privateKey = parsePrivateKey(privateKeyPem);
+            if (this.privateKey == null) {
+                log.error("❌ Falha ao fazer parse da chave privada. Verifique o formato da chave.");
+            } else {
+                log.info("✅ Chave privada parseada com sucesso!");
+            }
         }
     }
 

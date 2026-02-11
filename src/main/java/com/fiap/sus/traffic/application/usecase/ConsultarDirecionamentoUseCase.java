@@ -179,21 +179,23 @@ public class ConsultarDirecionamentoUseCase {
             }
 
             // Buscar indicadores operacionais
-            IndicadoresDTO indicadoresDTO = null;
-            try {
-                indicadoresDTO = liveOpsServicePort.buscarIndicadores(dto.id());
-            } catch (Exception e) {
-                log.warn("Erro ao buscar indicadores da unidade {} do LiveOps Service: {}. Usando valores padrão.", 
-                    dto.id(), e.getMessage());
-                // Continuar com indicadores nulos - serão usados valores padrão
-            }
+            // O LiveOpsServiceAdapter já trata erros e retorna indicadores padrão, então não precisamos fazer try-catch aqui
+            IndicadoresDTO indicadoresDTO = liveOpsServicePort.buscarIndicadores(dto.id());
             
-            IndicadoresOperacionais indicadores = IndicadoresOperacionais.fromMap(
-                indicadoresDTO != null ? indicadoresDTO.tmaPorRisco() : null,
-                indicadoresDTO != null ? indicadoresDTO.ocupacaoAtual() : null,
-                indicadoresDTO != null ? indicadoresDTO.pacientesEmEspera() : null,
-                indicadoresDTO != null ? indicadoresDTO.capacidadeNominal() : null
-            );
+            // Garantir que nunca é null (o adapter já garante isso, mas vamos ser defensivos)
+            IndicadoresOperacionais indicadores;
+            if (indicadoresDTO == null || indicadoresDTO.tmaPorRisco() == null) {
+                log.warn("LiveOpsServiceAdapter retornou null ou tmaPorRisco null para unidade {}. Usando valores padrão.", dto.id());
+                indicadores = IndicadoresOperacionais.padrao();
+            } else {
+                // Usar os indicadores retornados (que podem ser padrão se houve erro)
+                indicadores = IndicadoresOperacionais.fromMap(
+                    indicadoresDTO.tmaPorRisco(),
+                    indicadoresDTO.ocupacaoAtual(),
+                    indicadoresDTO.pacientesEmEspera(),
+                    indicadoresDTO.capacidadeNominal()
+                );
+            }
 
             // Extrair especialidades (assumindo que vem do Network Service)
             List<String> especialidades = new ArrayList<>();
