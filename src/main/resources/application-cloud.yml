@@ -78,6 +78,8 @@ traffic:
     liveops-service:
       # URL vem de secret do Cloud Run
       url: ${TRAFFIC_INTELLIGENCE_LIVEOPS_SERVICE_URL:http://liveops-service:8081}
+      # Chave privada para autenticação JWT (vem de secret do Cloud Run)
+      private-key: ${TRAFFIC_LIVEOPS_PRIVATE_KEY:}
       timeout: 2000
       connect-timeout: 1000
     cache:

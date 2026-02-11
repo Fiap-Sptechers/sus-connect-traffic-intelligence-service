@@ -30,6 +30,7 @@ public class TrafficIntelligenceProperties {
     @Setter
     public static class LiveOpsService {
         private String url;
+        private String privateKey; // Chave privada para autenticação JWT
         private int timeout = 2000;
         private int connectTimeout = 1000;
     }

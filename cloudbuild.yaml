@@ -74,6 +74,8 @@ steps:
       - 'TRAFFIC_INTELLIGENCE_NETWORK_SERVICE_URL=network-service-url:latest'
       - '--set-secrets'
       - 'TRAFFIC_INTELLIGENCE_LIVEOPS_SERVICE_URL=liveops-service-url:latest'
+      - '--set-secrets'
+      - 'TRAFFIC_LIVEOPS_PRIVATE_KEY=traffic-liveops-private-key:latest'
       - '--revision-suffix'
       - '${SHORT_SHA}'
     waitFor: ['push-image']
@@ -115,6 +117,8 @@ steps:
       - 'TRAFFIC_INTELLIGENCE_NETWORK_SERVICE_URL=network-service-url-staging:latest'
       - '--set-secrets'
       - 'TRAFFIC_INTELLIGENCE_LIVEOPS_SERVICE_URL=liveops-service-url-staging:latest'
+      - '--set-secrets'
+      - 'TRAFFIC_LIVEOPS_PRIVATE_KEY=traffic-liveops-private-key:latest'
       - '--revision-suffix'
       - '${SHORT_SHA}'
     waitFor: ['push-image']

@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(
     name = "liveOpsService",
     url = "${traffic.intelligence.liveops-service.url}",
-    fallback = LiveOpsServiceClientFallback.class
+    fallback = LiveOpsServiceClientFallback.class,
+    configuration = com.fiap.sus.traffic.infrastructure.config.LiveOpsServiceFeignConfig.class
 )
 public interface LiveOpsServiceClient {
 
