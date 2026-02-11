@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import feign.FeignException;
 
 import java.util.List;
 import java.util.Optional;
@@ -56,12 +57,15 @@ public class NetworkServiceAdapter implements NetworkServicePort {
             return cached.get();
         }
 
-        log.debug("Buscando unidades próximas: address={}, radius={}, unit={}", baseAddress, radius, distanceUnit);
+                String normalizedAddress = normalizeAddressForNetworkService(baseAddress);
+        
+        log.info("🔍 Buscando unidades próximas: address='{}' → normalizado='{}', radius={}, unit={}", 
+            baseAddress, normalizedAddress, radius, distanceUnit);
         
         try {
             // Network Service retorna Page<HealthUnitResponseDTO>, precisamos extrair o content
             PageResponseDTO<HealthUnitResponseDTO> pageResponse = client.buscarUnidadesProximas(
-                baseAddress, radius, distanceUnit, 0, 1000 // Buscar todas as unidades (até 1000)
+                normalizedAddress, radius, distanceUnit, 0, 1000 // Buscar todas as unidades (até 1000)
             );
             
             // Converter HealthUnitResponseDTO para UnidadeSaudeDTO
@@ -76,12 +80,32 @@ public class NetworkServiceAdapter implements NetworkServicePort {
             
             return unidades;
             
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
-            log.error("Erro ao buscar unidades do Network Service: Status {}", e.getStatusCode(), e);
-            throw new ExternalServiceException("Network Service", e.getMessage(), e.getStatusCode().value());
+        } catch (HttpClientErrorException e) {
+            log.error("Erro 4xx ao buscar unidades do Network Service: Status {} - {}", 
+                e.getStatusCode(), e.getMessage(), e);
+            throw new ExternalServiceException("Network Service", 
+                String.format("Erro ao comunicar com Network Service (Status %d): %s", 
+                    e.getStatusCode().value(), e.getMessage()), 
+                e.getStatusCode().value());
+        } catch (HttpServerErrorException e) {
+            log.error("Erro 5xx ao buscar unidades do Network Service: Status {} - {}", 
+                e.getStatusCode(), e.getMessage(), e);
+            throw new ExternalServiceException("Network Service", 
+                String.format("Erro ao comunicar com Network Service (Status %d): %s", 
+                    e.getStatusCode().value(), e.getMessage()), 
+                e.getStatusCode().value());
+        } catch (FeignException e) {
+            log.error("Erro Feign ao buscar unidades do Network Service: Status {} - {}", 
+                e.status(), e.getMessage(), e);
+            int statusCode = e.status() > 0 ? e.status() : 502;
+            throw new ExternalServiceException("Network Service", 
+                String.format("Erro ao comunicar com Network Service (Status %d): %s", 
+                    statusCode, e.getMessage()), 
+                statusCode);
         } catch (Exception e) {
-            log.error("Erro inesperado ao buscar unidades do Network Service", e);
-            throw new ExternalServiceException("Network Service", "Erro ao buscar unidades próximas", e);
+            log.error("Erro inesperado ao buscar unidades do Network Service: {}", e.getMessage(), e);
+            throw new ExternalServiceException("Network Service", 
+                "Erro ao buscar unidades próximas: " + e.getMessage(), e);
         }
     }
 
@@ -91,5 +115,41 @@ public class NetworkServiceAdapter implements NetworkServicePort {
     public UnidadeSaudeDTO buscarUnidadePorId(UUID id) {
         log.debug("Buscando unidade por ID: {}", id);
         return client.buscarUnidadePorId(id);
+    }
+
+    /**
+     * Normaliza o endereço antes de enviar ao Network Service.
+     * Expande abreviações comuns que podem causar problemas na geocodificação.
+     * 
+     * @param address Endereço original
+     * @return Endereço normalizado
+     */
+    private String normalizeAddressForNetworkService(String address) {
+        if (address == null || address.isBlank()) {
+            return address;
+        }
+        
+        String normalized = address.trim();
+        
+        
+        normalized = normalized.replaceAll("\\bAv\\.\\s*", "Avenida ");
+        normalized = normalized.replaceAll("\\bAv\\s+", "Avenida ");
+        normalized = normalized.replaceAll("\\bR\\.\\s*", "Rua ");
+        normalized = normalized.replaceAll("\\bR\\s+", "Rua ");
+        normalized = normalized.replaceAll("\\bRua\\s+R\\.", "Rua");
+        normalized = normalized.replaceAll("\\bAvenida\\s+Av\\.", "Avenida");
+        normalized = normalized.replaceAll("\\bPraça\\s+Pç\\.", "Praça");
+        normalized = normalized.replaceAll("\\bPç\\.\\s*", "Praça ");
+        normalized = normalized.replaceAll("\\bDr\\.\\s*", "Doutor ");
+        normalized = normalized.replaceAll("\\bDr\\s+", "Doutor ");
+        normalized = normalized.replaceAll("\\bProf\\.\\s*", "Professor ");
+        normalized = normalized.replaceAll("\\bProf\\s+", "Professor ");
+        
+        
+        normalized = normalized.replaceAll("\\s+", " ");
+        
+        normalized = normalized.trim();
+        
+        return normalized;
     }
 }

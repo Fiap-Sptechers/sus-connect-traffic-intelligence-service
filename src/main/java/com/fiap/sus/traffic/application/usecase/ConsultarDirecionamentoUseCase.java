@@ -78,11 +78,18 @@ public class ConsultarDirecionamentoUseCase {
         log.info("❌ Cache miss para sugestões. Chave: {}. Processando consulta...", cacheKey);
 
         // Buscar unidades próximas
-        List<UnidadeSaudeDTO> unidadesDTO = networkServicePort.buscarUnidadesProximas(
-            baseAddress, radius, distanceUnit
-        );
+        List<UnidadeSaudeDTO> unidadesDTO;
+        try {
+            unidadesDTO = networkServicePort.buscarUnidadesProximas(
+                baseAddress, radius, distanceUnit
+            );
+        } catch (Exception e) {
+            log.error("Erro ao buscar unidades do Network Service: {}", e.getMessage(), e);
+            throw new BusinessException("NETWORK_SERVICE_ERROR", 
+                "Erro ao buscar unidades próximas. Tente novamente mais tarde.");
+        }
 
-        if (unidadesDTO.isEmpty()) {
+        if (unidadesDTO == null || unidadesDTO.isEmpty()) {
             log.warn("Nenhuma unidade encontrada no raio de {} {}", radius, distanceUnit);
             throw new BusinessException("NO_UNITS_FOUND", 
                 String.format("Nenhuma unidade encontrada no raio de %.1f %s. Tente aumentar o raio.", radius, distanceUnit));
@@ -91,22 +98,42 @@ public class ConsultarDirecionamentoUseCase {
         log.debug("Encontradas {} unidades no raio", unidadesDTO.size());
 
         // Construir contexto das unidades com indicadores
-        List<UnidadeSaudeContext> unidadesContext = construirContextoUnidades(
-            unidadesDTO, riskClassification
-        );
+        List<UnidadeSaudeContext> unidadesContext;
+        try {
+            unidadesContext = construirContextoUnidades(
+                unidadesDTO, riskClassification
+            );
+        } catch (Exception e) {
+            log.error("Erro ao construir contexto das unidades: {}", e.getMessage(), e);
+            throw new BusinessException("CONTEXT_BUILD_ERROR", 
+                "Erro ao processar informações das unidades. Tente novamente mais tarde.");
+        }
+
+        if (unidadesContext.isEmpty()) {
+            log.warn("Nenhuma unidade válida após processamento");
+            throw new BusinessException("NO_VALID_UNITS", 
+                "Nenhuma unidade válida encontrada após processamento.");
+        }
 
         // Buscar pesos configurados
         CriterioPeso pesos = pesosRepository.buscar()
             .orElse(CriterioPeso.padrao());
 
         // Aplicar algoritmo de direcionamento
-        List<SugestaoOrdenada> sugestoes = algoritmoService.calcularSugestoes(
-            unidadesContext,
-            pesos,
-            riskClassification,
-            especialidade,
-            properties.getAlgoritmo().getMaxSugestoes()
-        );
+        List<SugestaoOrdenada> sugestoes;
+        try {
+            sugestoes = algoritmoService.calcularSugestoes(
+                unidadesContext,
+                pesos,
+                riskClassification,
+                especialidade,
+                properties.getAlgoritmo().getMaxSugestoes()
+            );
+        } catch (Exception e) {
+            log.error("Erro ao calcular sugestões: {}", e.getMessage(), e);
+            throw new BusinessException("ALGORITHM_ERROR", 
+                "Erro ao calcular sugestões de direcionamento. Tente novamente mais tarde.");
+        }
 
         // Armazenar no cache
         long ttl = properties.getCache().getTtlSugestoes().getSeconds();
@@ -152,7 +179,14 @@ public class ConsultarDirecionamentoUseCase {
             }
 
             // Buscar indicadores operacionais
-            IndicadoresDTO indicadoresDTO = liveOpsServicePort.buscarIndicadores(dto.id());
+            IndicadoresDTO indicadoresDTO = null;
+            try {
+                indicadoresDTO = liveOpsServicePort.buscarIndicadores(dto.id());
+            } catch (Exception e) {
+                log.warn("Erro ao buscar indicadores da unidade {} do LiveOps Service: {}. Usando valores padrão.", 
+                    dto.id(), e.getMessage());
+                // Continuar com indicadores nulos - serão usados valores padrão
+            }
             
             IndicadoresOperacionais indicadores = IndicadoresOperacionais.fromMap(
                 indicadoresDTO != null ? indicadoresDTO.tmaPorRisco() : null,
