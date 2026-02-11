@@ -12,6 +12,7 @@ import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * Serviço para gerar tokens JWT para autenticação service-to-service.
@@ -24,8 +25,9 @@ public class JwtService {
 
     private final TrafficIntelligenceProperties properties;
     private PrivateKey privateKey;
-    private static final String ISSUER = "SusConnect-TrafficIntelligence";
-    private static final long TOKEN_VALIDITY_MS = 3600000; // 1 hora
+    private static final String ISSUER = "sus-connect-traffic-api"; // Deve corresponder ao esperado pelo LiveOps Service
+    private static final String AUDIENCE = "sus-connect-liveops-api"; // Audience esperado pelo LiveOps Service
+    private static final long TOKEN_VALIDITY_MS = 300000;
 
     /**
      * Inicializa a chave privada após todas as propriedades serem carregadas.
@@ -79,14 +81,16 @@ public class JwtService {
 
             String token = Jwts.builder()
                     .issuer(ISSUER)
+                    .audience().add(AUDIENCE).and() // Audience esperado pelo LiveOps Service
                     .subject("traffic-intelligence-service")
                     .issuedAt(now)
                     .expiration(expiration)
+                    .id(UUID.randomUUID().toString()) // JTI (JWT ID) como Network Service faz
                     .claim("service", "traffic-intelligence")
                     .signWith(privateKey)
                     .compact();
             
-            log.debug("✅ Token JWT gerado com sucesso (expira em: {})", expiration);
+            log.info("✅ Token JWT gerado com sucesso (expira em: {}, tamanho: {} caracteres)", expiration, token.length());
             return token;
         } catch (Exception e) {
             log.error("❌ Erro ao gerar token JWT: {}", e.getMessage(), e);

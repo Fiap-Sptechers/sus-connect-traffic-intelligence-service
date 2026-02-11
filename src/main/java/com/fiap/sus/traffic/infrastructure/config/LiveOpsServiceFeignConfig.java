@@ -31,9 +31,9 @@ public class LiveOpsServiceFeignConfig {
                 String token = jwtService.generateToken();
                 if (token != null) {
                     template.header("Authorization", "Bearer " + token);
-                    log.debug("Token JWT adicionado ao header Authorization para LiveOps Service");
+                    log.info("✅ Token JWT gerado e adicionado ao header Authorization para LiveOps Service (tamanho: {} caracteres)", token.length());
                 } else {
-                    log.warn("Não foi possível gerar token JWT. Requisição ao LiveOps Service pode falhar com 401.");
+                    log.error("❌ Não foi possível gerar token JWT. Requisição ao LiveOps Service vai falhar com 401.");
                 }
             }
         };
