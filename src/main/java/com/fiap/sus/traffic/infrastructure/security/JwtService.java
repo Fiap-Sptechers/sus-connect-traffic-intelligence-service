@@ -25,7 +25,13 @@ public class JwtService {
 
     public JwtService(TrafficIntelligenceProperties properties) {
         String privateKeyPem = properties.getLiveopsService().getPrivateKey();
-        this.privateKey = parsePrivateKey(privateKeyPem);
+        if (privateKeyPem == null || privateKeyPem.isBlank()) {
+            log.error("❌ TRAFFIC_LIVEOPS_PRIVATE_KEY não está configurada! Verifique se o secret está configurado no Cloud Run.");
+            this.privateKey = null;
+        } else {
+            log.debug("Chave privada encontrada (tamanho: {} caracteres). Fazendo parse...", privateKeyPem.length());
+            this.privateKey = parsePrivateKey(privateKeyPem);
+        }
     }
 
     /**
@@ -35,7 +41,7 @@ public class JwtService {
      */
     public String generateToken() {
         if (privateKey == null) {
-            log.warn("Chave privada não configurada. Não é possível gerar token JWT.");
+            log.error("❌ Chave privada não configurada. Não é possível gerar token JWT. Verifique se TRAFFIC_LIVEOPS_PRIVATE_KEY está configurada no Cloud Run.");
             return null;
         }
 
