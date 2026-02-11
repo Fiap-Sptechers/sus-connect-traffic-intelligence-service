@@ -51,6 +51,20 @@ public record IndicadoresOperacionais(
                                                    Integer ocupacaoAtual,
                                                    Integer pacientesEmEspera,
                                                    Integer capacidadeNominal) {
+        // Se tmaPorRisco for null, usar valores padrão
+        if (tmaPorRisco == null) {
+            return new IndicadoresOperacionais(
+                5,    // RED
+                10,   // ORANGE
+                60,   // YELLOW
+                120,  // GREEN
+                240,  // BLUE
+                ocupacaoAtual != null ? ocupacaoAtual : 0,
+                pacientesEmEspera != null ? pacientesEmEspera : 0,
+                capacidadeNominal != null ? capacidadeNominal : 10
+            );
+        }
+        
         return new IndicadoresOperacionais(
             tmaPorRisco.getOrDefault(RiskClassification.RED, 5),
             tmaPorRisco.getOrDefault(RiskClassification.ORANGE, 10),
