@@ -2,6 +2,8 @@ package com.fiap.sus.traffic.infrastructure.security;
 
 import com.fiap.sus.traffic.infrastructure.config.TrafficIntelligenceProperties;
 import io.jsonwebtoken.Jwts;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -16,14 +18,21 @@ import java.util.Date;
  * Usa a chave privada do Traffic Intelligence Service para assinar tokens.
  */
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class JwtService {
 
-    private final PrivateKey privateKey;
+    private final TrafficIntelligenceProperties properties;
+    private PrivateKey privateKey;
     private static final String ISSUER = "SusConnect-TrafficIntelligence";
     private static final long TOKEN_VALIDITY_MS = 3600000; // 1 hora
 
-    public JwtService(TrafficIntelligenceProperties properties) {
+    /**
+     * Inicializa a chave privada após todas as propriedades serem carregadas.
+     * Usa @PostConstruct para garantir que as propriedades do Spring já foram injetadas.
+     */
+    @PostConstruct
+    public void init() {
         String privateKeyPem = properties.getLiveopsService().getPrivateKey();
         
         // Log detalhado para diagnóstico
@@ -57,14 +66,18 @@ public class JwtService {
     public String generateToken() {
         if (privateKey == null) {
             log.error("❌ Chave privada não configurada. Não é possível gerar token JWT. Verifique se TRAFFIC_LIVEOPS_PRIVATE_KEY está configurada no Cloud Run.");
-            return null;
+            // Tentar recarregar a chave (pode ter sido carregada depois do @PostConstruct)
+            init();
+            if (privateKey == null) {
+                return null;
+            }
         }
 
         try {
             Date now = new Date();
             Date expiration = new Date(now.getTime() + TOKEN_VALIDITY_MS);
 
-            return Jwts.builder()
+            String token = Jwts.builder()
                     .issuer(ISSUER)
                     .subject("traffic-intelligence-service")
                     .issuedAt(now)
@@ -72,8 +85,11 @@ public class JwtService {
                     .claim("service", "traffic-intelligence")
                     .signWith(privateKey)
                     .compact();
+            
+            log.debug("✅ Token JWT gerado com sucesso (expira em: {})", expiration);
+            return token;
         } catch (Exception e) {
-            log.error("Erro ao gerar token JWT", e);
+            log.error("❌ Erro ao gerar token JWT: {}", e.getMessage(), e);
             return null;
         }
     }
