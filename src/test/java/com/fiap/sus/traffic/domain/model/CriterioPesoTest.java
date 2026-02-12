@@ -23,7 +23,7 @@ class CriterioPesoTest {
 
     @Test
     void deveLancarExcecaoQuandoSomaMaiorQueUm() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(com.fiap.sus.traffic.core.exception.ValidationException.class, () -> {
             CriterioPeso.builder()
                 .pesoDistancia(0.5)
                 .pesoTMA(0.4)
@@ -35,7 +35,7 @@ class CriterioPesoTest {
 
     @Test
     void deveLancarExcecaoQuandoPesoNegativo() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(com.fiap.sus.traffic.core.exception.ValidationException.class, () -> {
             CriterioPeso.builder()
                 .pesoDistancia(-0.1)
                 .pesoTMA(0.4)
@@ -47,7 +47,7 @@ class CriterioPesoTest {
 
     @Test
     void deveLancarExcecaoQuandoPesoMaiorQueUm() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(com.fiap.sus.traffic.core.exception.ValidationException.class, () -> {
             CriterioPeso.builder()
                 .pesoDistancia(1.1)
                 .pesoTMA(0.4)
