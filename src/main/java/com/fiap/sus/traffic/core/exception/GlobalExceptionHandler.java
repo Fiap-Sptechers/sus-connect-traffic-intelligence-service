@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  * 
  * Referência: https://medium.com/@sharmapraveen91/handle-exceptions-in-spring-boot-a-guide-to-clean-code-principles-e8a9d56cafe8
  */
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "com.fiap.sus.traffic.presentation.controller")
 @Slf4j
 public class GlobalExceptionHandler {
 
