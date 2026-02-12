@@ -76,6 +76,8 @@ steps:
       - 'TRAFFIC_INTELLIGENCE_LIVEOPS_SERVICE_URL=liveops-service-url:latest'
       - '--set-secrets'
       - 'TRAFFIC_LIVEOPS_PRIVATE_KEY=traffic-liveops-private-key:latest'
+      - '--set-secrets'
+      - 'SWAGGER_SERVER_URL=swagger-server-url:latest'
       - '--revision-suffix'
       - '${SHORT_SHA}'
     waitFor: ['push-image']
@@ -119,6 +121,8 @@ steps:
       - 'TRAFFIC_INTELLIGENCE_LIVEOPS_SERVICE_URL=liveops-service-url-staging:latest'
       - '--set-secrets'
       - 'TRAFFIC_LIVEOPS_PRIVATE_KEY=traffic-liveops-private-key:latest'
+      - '--set-secrets'
+      - 'SWAGGER_SERVER_URL=swagger-server-url-staging:latest'
       - '--revision-suffix'
       - '${SHORT_SHA}'
     waitFor: ['push-image']

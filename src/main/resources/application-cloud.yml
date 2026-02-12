@@ -32,6 +32,33 @@ server:
       max: 200
       min-spare: 10
 
+# Swagger/OpenAPI Configuration (Cloud)
+swagger:
+  server:
+    url: ${SWAGGER_SERVER_URL:}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    try-it-out-enabled: true
+    display-request-duration: true
+    show-common-extensions: true
+    default-models-expand-depth: 2
+    default-model-expand-depth: 2
+    tags-sorter: alpha
+    operations-sorter: alpha
+    config-url: /v3/api-docs/swagger-config
+    urls:
+      - url: /v3/api-docs
+        name: Traffic Intelligence API
+  show-actuator: false
+  packages-to-scan: com.fiap.sus.traffic.presentation.controller
+  paths-to-exclude: /actuator/**,/error
+
 management:
   endpoints:
     web:

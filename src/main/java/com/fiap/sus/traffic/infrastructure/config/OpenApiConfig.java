@@ -6,21 +6,24 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springdoc.core.models.GroupedOpenApi;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Configuração do Swagger/OpenAPI para documentação da API.
- * 
- * A documentação estará disponível em:
- * - Swagger UI: http://localhost:8082/swagger-ui.html
- * - OpenAPI JSON: http://localhost:8082/v3/api-docs
- * - OpenAPI YAML: http://localhost:8082/v3/api-docs.yaml
  */
 @Configuration
 public class OpenApiConfig {
+
+    @Value("${swagger.server.url:${SWAGGER_SERVER_URL:}}")
+    private String swaggerServerUrl;
+
+    @Value("${server.port:8082}")
+    private String serverPort;
 
     @Bean
     public GroupedOpenApi publicApi() {
@@ -33,13 +36,19 @@ public class OpenApiConfig {
 
     @Bean
     public OpenAPI trafficIntelligenceOpenAPI() {
-        Server localServer = new Server();
-        localServer.setUrl("http://localhost:8082");
-        localServer.setDescription("Servidor Local");
+        List<Server> servers = new ArrayList<>();
 
-        Server cloudServer = new Server();
-        cloudServer.setUrl("https://traffic-intelligence-service-{environment}.run.app");
-        cloudServer.setDescription("Cloud Run (produção)");
+        Server localServer = new Server();
+        localServer.setUrl("http://localhost:" + serverPort);
+        localServer.setDescription("Servidor Local");
+        servers.add(localServer);
+
+        Server productionServer = new Server();
+        String productionUrl = determineProductionUrl();
+        productionServer.setUrl(productionUrl);
+        productionServer.setDescription("Produção");
+        servers.add(productionServer);
+
 
         Contact contact = new Contact();
         contact.setName("SusConnect Team");
@@ -75,6 +84,13 @@ public class OpenApiConfig {
 
         return new OpenAPI()
                 .info(info)
-                .servers(List.of(localServer, cloudServer));
+                .servers(servers);
+    }
+
+    private String determineProductionUrl() {
+        if (swaggerServerUrl != null && !swaggerServerUrl.isBlank()) {
+            return swaggerServerUrl;
+        }
+        return "http://localhost:" + serverPort;
     }
 }
