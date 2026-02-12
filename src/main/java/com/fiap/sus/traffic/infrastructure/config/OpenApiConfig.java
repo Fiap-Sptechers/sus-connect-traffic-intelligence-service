@@ -25,6 +25,9 @@ public class OpenApiConfig {
     @Value("${server.port:8082}")
     private String serverPort;
 
+    @Value("${spring.profiles.active:}")
+    private String activeProfile;
+
     @Bean
     public GroupedOpenApi publicApi() {
         return GroupedOpenApi.builder()
@@ -38,16 +41,31 @@ public class OpenApiConfig {
     public OpenAPI trafficIntelligenceOpenAPI() {
         List<Server> servers = new ArrayList<>();
 
-        Server localServer = new Server();
-        localServer.setUrl("http://localhost:" + serverPort);
-        localServer.setDescription("Servidor Local");
-        servers.add(localServer);
-
-        Server productionServer = new Server();
-        String productionUrl = determineProductionUrl();
-        productionServer.setUrl(productionUrl);
-        productionServer.setDescription("Produção");
-        servers.add(productionServer);
+        if (isProductionEnvironment()) {
+            Server productionServer = new Server();
+            productionServer.setUrl("/");
+            productionServer.setDescription("Produção (detectado automaticamente)");
+            servers.add(productionServer);
+            
+            if (swaggerServerUrl != null && !swaggerServerUrl.isBlank()) {
+                Server explicitServer = new Server();
+                explicitServer.setUrl(swaggerServerUrl);
+                explicitServer.setDescription("Produção (configurado)");
+                servers.add(explicitServer);
+            }
+        } else {
+            Server localServer = new Server();
+            localServer.setUrl("http://localhost:" + serverPort);
+            localServer.setDescription("Servidor Local");
+            servers.add(localServer);
+            
+            if (swaggerServerUrl != null && !swaggerServerUrl.isBlank()) {
+                Server productionServer = new Server();
+                productionServer.setUrl(swaggerServerUrl);
+                productionServer.setDescription("Produção");
+                servers.add(productionServer);
+            }
+        }
 
 
         Contact contact = new Contact();
@@ -87,10 +105,29 @@ public class OpenApiConfig {
                 .servers(servers);
     }
 
-    private String determineProductionUrl() {
-        if (swaggerServerUrl != null && !swaggerServerUrl.isBlank()) {
-            return swaggerServerUrl;
+    /**
+     * Verifica se está em ambiente de produção (Cloud Run).
+     * Detecta via:
+     * 1. Profile ativo = "cloud"
+     * 2. Variável de ambiente K_SERVICE (Cloud Run sempre define)
+     * 3. Variável de ambiente PORT (Cloud Run sempre define, diferente de 8082)
+     */
+    private boolean isProductionEnvironment() {
+        if ("cloud".equals(activeProfile)) {
+            return true;
         }
-        return "http://localhost:" + serverPort;
+        
+        String kService = System.getenv("K_SERVICE");
+        String port = System.getenv("PORT");
+        
+        if (kService != null && !kService.isBlank()) {
+            return true;
+        }
+        
+        if (port != null && !port.equals(serverPort) && !port.equals("8082")) {
+            return true;
+        }
+        
+        return false;
     }
 }

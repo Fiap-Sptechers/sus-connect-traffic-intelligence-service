@@ -60,6 +60,7 @@ springdoc:
     urls:
       - url: /v3/api-docs
         name: Traffic Intelligence API
+    use-root-path: false
   show-actuator: false
   packages-to-scan: com.fiap.sus.traffic.presentation.controller
   paths-to-exclude: /actuator/**,/error
