@@ -90,7 +90,7 @@ public class DirecionamentoController {
             content = @Content(mediaType = "application/json")
         )
     })
-    @RequestMapping(value = "/consultar", method = {RequestMethod.GET, RequestMethod.POST})
+    @GetMapping("/consultar")
     public ResponseEntity<DirecionamentoResponse> consultar(
             @Parameter(
                 description = "Parâmetros da consulta de direcionamento",

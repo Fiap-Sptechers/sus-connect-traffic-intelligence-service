@@ -2,6 +2,7 @@ package com.fiap.sus.traffic.presentation.controller;
 
 import com.fiap.sus.traffic.application.usecase.AtualizarPesosUseCase;
 import com.fiap.sus.traffic.presentation.dto.PesosConfigRequest;
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/config")
 @RequiredArgsConstructor
 @Slf4j
+@Hidden
 public class ConfiguracaoController {
 
     private final AtualizarPesosUseCase atualizarPesosUseCase;
