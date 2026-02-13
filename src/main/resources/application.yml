@@ -20,7 +20,7 @@ spring:
       fail-on-unknown-properties: false
 
 server:
-  port: ${PORT:8082}  # Cloud Run define $PORT automaticamente
+  port: ${PORT:8082}
   tomcat:
     uri-encoding: UTF-8
 

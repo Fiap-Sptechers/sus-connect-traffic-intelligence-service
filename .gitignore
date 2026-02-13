@@ -89,9 +89,7 @@ application-local.yml
 application-dev.yml
 application-prod.yml
 *.properties.local
-*.env
-.env.local
-.env.*.local
+.env*
 
 # Spring Boot
 spring-boot-*.log
