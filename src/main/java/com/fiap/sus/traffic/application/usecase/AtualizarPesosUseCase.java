@@ -1,5 +1,6 @@
 package com.fiap.sus.traffic.application.usecase;
 
+import com.fiap.sus.traffic.application.port.CachePort;
 import com.fiap.sus.traffic.domain.model.CriterioPeso;
 import com.fiap.sus.traffic.domain.repository.CriterioPesoRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 public class AtualizarPesosUseCase {
 
     private final CriterioPesoRepository pesosRepository;
+    private final CachePort cachePort;
 
     public void executar(double pesoDistancia, double pesoTMA, 
                         double pesoOcupacao, double pesoEspecialidade) {
@@ -28,6 +30,9 @@ public class AtualizarPesosUseCase {
 
         pesosRepository.salvar(pesos);
         
-        log.info("Pesos atualizados com sucesso");
+        log.info("Invalidando cache de sugestões devido à atualização de pesos");
+        cachePort.evictPattern("traffic:intelligence:sugestoes:*");
+        
+        log.info("Pesos atualizados com sucesso e cache de sugestões invalidado");
     }
 }
